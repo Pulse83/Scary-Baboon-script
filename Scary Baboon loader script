@@ -1,0 +1,251 @@
+local player = game.Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 550)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Visible = true
+frame.Parent = screenGui
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 50)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Scary Baboon"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = frame
+
+local creatorLabel = Instance.new("TextLabel")
+creatorLabel.Size = UDim2.new(1, 0, 0, 20)
+creatorLabel.Position = UDim2.new(0, 0, 1, -20)
+creatorLabel.BackgroundTransparency = 1
+creatorLabel.Text = "by Pulse"
+creatorLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+creatorLabel.TextScaled = true
+creatorLabel.Font = Enum.Font.SourceSansItalic
+creatorLabel.Parent = frame
+
+local speedButton = Instance.new("TextButton")
+speedButton.Size = UDim2.new(1, -20, 0, 50)
+speedButton.Position = UDim2.new(0, 10, 0, 60)
+speedButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+speedButton.Text = "Toggle Speed"
+speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedButton.TextScaled = true
+speedButton.Font = Enum.Font.SourceSansBold
+speedButton.Parent = frame
+
+local teleportButton = Instance.new("TextButton")
+teleportButton.Size = UDim2.new(1, -20, 0, 50)
+teleportButton.Position = UDim2.new(0, 10, 0, 120)
+teleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+teleportButton.Text = "Teleport Home"
+teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportButton.TextScaled = true
+teleportButton.Font = Enum.Font.SourceSansBold
+teleportButton.Parent = frame
+
+local coinTeleportButton = Instance.new("TextButton")
+coinTeleportButton.Size = UDim2.new(1, -20, 0, 50)
+coinTeleportButton.Position = UDim2.new(0, 10, 0, 180)
+coinTeleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+coinTeleportButton.Text = "Toggle Coin Autofarm"
+coinTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+coinTeleportButton.TextScaled = true
+coinTeleportButton.Font = Enum.Font.SourceSansBold
+coinTeleportButton.Parent = frame
+
+local shopThemeButton = Instance.new("TextButton")
+shopThemeButton.Size = UDim2.new(1, -20, 0, 50)
+shopThemeButton.Position = UDim2.new(0, 10, 0, 240)
+shopThemeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+shopThemeButton.Text = "Shop Teleport"
+shopThemeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+shopThemeButton.TextScaled = true
+shopThemeButton.Font = Enum.Font.SourceSansBold
+shopThemeButton.Parent = frame
+
+local morphButton = Instance.new("TextButton")
+morphButton.Size = UDim2.new(1, -20, 0, 50)
+morphButton.Position = UDim2.new(0, 10, 0, 300)
+morphButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+morphButton.Text = "Morph"
+morphButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+morphButton.TextScaled = true
+morphButton.Font = Enum.Font.SourceSansBold
+morphButton.Parent = frame
+
+local noclipButton = Instance.new("TextButton")
+noclipButton.Size = UDim2.new(1, -20, 0, 50)
+noclipButton.Position = UDim2.new(0, 10, 0, 360)
+noclipButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+noclipButton.Text = "Toggle Noclip"
+noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+noclipButton.TextScaled = true
+noclipButton.Font = Enum.Font.SourceSansBold
+noclipButton.Parent = frame
+
+local resetButton = Instance.new("TextButton")
+resetButton.Size = UDim2.new(1, -20, 0, 50)
+resetButton.Position = UDim2.new(0, 10, 0, 420)
+resetButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+resetButton.Text = "Reset Character"
+resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+resetButton.TextScaled = true
+resetButton.Font = Enum.Font.SourceSansBold
+resetButton.Parent = frame
+
+-- Speed Toggle
+local speedEnabled = false
+speedButton.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    if speedEnabled then
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
+    else
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    end
+end)
+
+-- Teleport Home
+local function teleportHome()
+    local targetPart = nil
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and string.find(obj.Name, "Exit") then
+            targetPart = obj
+            break
+        end
+    end
+    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
+    else
+        warn("Could not find any part with 'Exit' in its name.")
+    end
+end
+teleportButton.MouseButton1Click:Connect(teleportHome)
+
+-- Coin Autofarm Teleport
+local coinTeleportEnabled = false
+local function teleportToRandomCoin()
+    local coins = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (string.find(obj.Name, "Coin") or string.find(obj.Name, "Coins")) then
+            table.insert(coins, obj)
+        end
+    end
+    if #coins > 0 then
+        local randomCoin = coins[math.random(1, #coins)]
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = randomCoin.CFrame
+        else
+            warn("Player character is not ready.")
+        end
+    else
+        warn("No coins found in the game.")
+    end
+end
+coinTeleportButton.MouseButton1Click:Connect(function()
+    coinTeleportEnabled = not coinTeleportEnabled
+    if coinTeleportEnabled then
+        while coinTeleportEnabled do
+            teleportToRandomCoin()
+            wait(0.01)
+        end
+    end
+end)
+
+-- Shop Teleport
+local function teleportToShopTheme()
+    local targetPart = nil
+    local shopThemeFolder = workspace:FindFirstChild("InteractiveMusicRegions")
+    if shopThemeFolder then
+        for _, obj in ipairs(shopThemeFolder:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name == "Shop theme" then
+                targetPart = obj
+                break
+            end
+        end
+    end
+    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
+    else
+        warn("Could not find 'Shop theme' in the 'InteractiveMusicRegions' folder.")
+    end
+end
+shopThemeButton.MouseButton1Click:Connect(teleportToShopTheme)
+
+-- Morph Teleport
+local function teleportToMorph()
+    local targetPart = nil
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name == "Prompt" then
+            targetPart = obj
+            break
+        end
+    end
+    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
+    else
+        warn("Could not find 'Prompt' in the game.")
+    end
+end
+morphButton.MouseButton1Click:Connect(teleportToMorph)
+
+-- Noclip Toggle
+local noclipEnabled = false
+noclipButton.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    if noclipEnabled then
+        local character = player.Character
+        if character then
+            for _, part in ipairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+            character.Humanoid.PlatformStand = true
+            character.HumanoidRootPart.Anchored = true
+        end
+    else
+        local character = player.Character
+        if character then
+            for _, part in ipairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+            character.Humanoid.PlatformStand = false
+            character.HumanoidRootPart.Anchored = false
+        end
+    end
+end)
+
+-- Reset Character
+resetButton.MouseButton1Click:Connect(function()
+    -- Ensure the player has a character before attempting to reset
+    local character = player.Character
+    if character then
+        -- Destroy the existing character to trigger a respawn
+        character:BreakJoints()
+    end
+end)
+
+-- Toggle Menu Visibility with P key
+local menuVisible = true
+local function toggleMenuVisibility()
+    menuVisible = not menuVisible
+    frame.Visible = menuVisible
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.P then
+            toggleMenuVisibility()
+        end
+    end
+end)
