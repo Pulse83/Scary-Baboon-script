@@ -1,119 +1,278 @@
 local player = game.Players.LocalPlayer
 local mouse = player:GetMouse()
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
+local c = workspace.CurrentCamera
+local Lighting = game:GetService("Lighting")
 
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = game.CoreGui
+screenGui.Name = "ScaryBaboonGUI"
+
+local hoverSound = Instance.new("Sound")
+hoverSound.SoundId = "rbxassetid://9114311632"
+hoverSound.Volume = 0.5
+hoverSound.Parent = screenGui
+
+local clickSound = Instance.new("Sound")
+clickSound.SoundId = "rbxassetid://9114311109"
+clickSound.Volume = 0.7
+clickSound.Parent = screenGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 550)
-frame.Position = UDim2.new(0, 20, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Size = UDim2.new(0, 250, 0, 650)
+frame.Position = UDim2.new(0, -250, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.BorderSizePixel = 0
 frame.Visible = true
 frame.Parent = screenGui
+
+local uiGradient = Instance.new("UIGradient")
+uiGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 60)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 30, 30))
+})
+uiGradient.Rotation = 45
+uiGradient.Parent = frame
+
+local uiStroke = Instance.new("UIStroke")
+uiStroke.Thickness = 2
+uiStroke.Color = Color3.fromRGB(255, 85, 85)
+uiStroke.Transparency = 0.5
+uiStroke.Parent = frame
+
+local glowTween = TweenService:Create(uiStroke, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Transparency = 0.2})
+glowTween:Play()
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = frame
+
+local dragToggle = nil
+local dragSpeed = 0.25
+local dragStart = nil
+local startPos = nil
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    TweenService:Create(frame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+end
+
+frame.InputBegan:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+        dragToggle = true
+        dragStart = input.Position
+        startPos = frame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragToggle = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragToggle then
+            updateInput(input)
+        end
+    end
+end)
 
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 50)
 titleLabel.BackgroundTransparency = 1
 titleLabel.Text = "Scary Baboon"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextColor3 = Color3.fromRGB(255, 85, 85)
 titleLabel.TextScaled = true
-titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Font = Enum.Font.Arcade
 titleLabel.Parent = frame
 
 local creatorLabel = Instance.new("TextLabel")
 creatorLabel.Size = UDim2.new(1, 0, 0, 20)
-creatorLabel.Position = UDim2.new(0, 0, 1, -20)
+creatorLabel.Position = UDim2.new(0, 0, 1, -40)
 creatorLabel.BackgroundTransparency = 1
-creatorLabel.Text = "by Pulse"
+creatorLabel.Text = "By xiaon32"
 creatorLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
 creatorLabel.TextScaled = true
-creatorLabel.Font = Enum.Font.SourceSansItalic
+creatorLabel.Font = Enum.Font.Code
 creatorLabel.Parent = frame
 
-local speedButton = Instance.new("TextButton")
-speedButton.Size = UDim2.new(1, -20, 0, 50)
-speedButton.Position = UDim2.new(0, 10, 0, 60)
-speedButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-speedButton.Text = "Toggle Speed"
-speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedButton.TextScaled = true
-speedButton.Font = Enum.Font.SourceSansBold
-speedButton.Parent = frame
+local versionLabel = Instance.new("TextLabel")
+versionLabel.Size = UDim2.new(1, -20, 0, 20)
+versionLabel.Position = UDim2.new(0, 10, 0, 585) -- Moved up from 610 to 585
+versionLabel.BackgroundTransparency = 1
+versionLabel.Text = "v2.0"
+versionLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+versionLabel.TextScaled = true
+versionLabel.Font = Enum.Font.Code
+versionLabel.Parent = frame
 
-local teleportButton = Instance.new("TextButton")
-teleportButton.Size = UDim2.new(1, -20, 0, 50)
-teleportButton.Position = UDim2.new(0, 10, 0, 120)
-teleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-teleportButton.Text = "Teleport Home"
-teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportButton.TextScaled = true
-teleportButton.Font = Enum.Font.SourceSansBold
-teleportButton.Parent = frame
+local function createButton(name, position, text)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 200, 0, 40)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.Text = text
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.Code
+    button.Name = name
+    button.Parent = frame
+    
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+    button.Position = UDim2.new(0, position.X.Offset + 100, 0, position.Y.Offset + 20)
 
-local coinTeleportButton = Instance.new("TextButton")
-coinTeleportButton.Size = UDim2.new(1, -20, 0, 50)
-coinTeleportButton.Position = UDim2.new(0, 10, 0, 180)
-coinTeleportButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-coinTeleportButton.Text = "Toggle Coin Autofarm"
-coinTeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-coinTeleportButton.TextScaled = true
-coinTeleportButton.Font = Enum.Font.SourceSansBold
-coinTeleportButton.Parent = frame
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
 
-local shopThemeButton = Instance.new("TextButton")
-shopThemeButton.Size = UDim2.new(1, -20, 0, 50)
-shopThemeButton.Position = UDim2.new(0, 10, 0, 240)
-shopThemeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-shopThemeButton.Text = "Shop Teleport"
-shopThemeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-shopThemeButton.TextScaled = true
-shopThemeButton.Font = Enum.Font.SourceSansBold
-shopThemeButton.Parent = frame
+    local uiScale = Instance.new("UIScale")
+    uiScale.Parent = button
 
-local morphButton = Instance.new("TextButton")
-morphButton.Size = UDim2.new(1, -20, 0, 50)
-morphButton.Position = UDim2.new(0, 10, 0, 300)
-morphButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-morphButton.Text = "Morph"
-morphButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-morphButton.TextScaled = true
-morphButton.Font = Enum.Font.SourceSansBold
-morphButton.Parent = frame
+    button.MouseEnter:Connect(function()
+        hoverSound:Play()
+        TweenService:Create(uiScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Scale = 1.1}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(uiScale, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Scale = 1.0}):Play()
+    end)
 
-local noclipButton = Instance.new("TextButton")
-noclipButton.Size = UDim2.new(1, -20, 0, 50)
-noclipButton.Position = UDim2.new(0, 10, 0, 360)
-noclipButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-noclipButton.Text = "Toggle Noclip"
-noclipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-noclipButton.TextScaled = true
-noclipButton.Font = Enum.Font.SourceSansBold
-noclipButton.Parent = frame
+    button.MouseButton1Down:Connect(function()
+        clickSound:Play()
+        TweenService:Create(uiScale, TweenInfo.new(0.1), {Scale = 0.9}):Play()
+    end)
+    button.MouseButton1Up:Connect(function()
+        TweenService:Create(uiScale, TweenInfo.new(0.1), {Scale = 1.0}):Play()
+    end)
+    
+    return button
+end
 
-local resetButton = Instance.new("TextButton")
-resetButton.Size = UDim2.new(1, -20, 0, 50)
-resetButton.Position = UDim2.new(0, 10, 0, 420)
-resetButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-resetButton.Text = "Reset Character"
-resetButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-resetButton.TextScaled = true
-resetButton.Font = Enum.Font.SourceSansBold
-resetButton.Parent = frame
+local speedButton = createButton("SpeedButton", UDim2.new(0, 25, 0, 60), "Toggle Speed")
+local teleportButton = createButton("TeleportButton", UDim2.new(0, 25, 0, 120), "Teleport Home")
+local coinTeleportButton = createButton("CoinButton", UDim2.new(0, 25, 0, 180), "Toggle Coin Autofarm")
+local shopThemeButton = createButton("ShopButton", UDim2.new(0, 25, 0, 240), "Shop Teleport")
+local flyButton = createButton("FlyButton", UDim2.new(0, 25, 0, 300), "Fly")
+local resetButton = createButton("ResetButton", UDim2.new(0, 25, 0, 360), "Reset Character")
+local fullBrightButton = createButton("FullBrightButton", UDim2.new(0, 25, 0, 420), "FullBright")
+local fastInteractButton = createButton("FastInteractButton", UDim2.new(0, 25, 0, 480), "Fast Interact")
+local espButton = createButton("ESPButton", UDim2.new(0, 25, 0, 540), "Toggle ESP")
 
--- Speed Toggle
-local speedEnabled = false
-speedButton.MouseButton1Click:Connect(function()
-    speedEnabled = not speedEnabled
-    if speedEnabled then
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 50
-    else
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+local notificationFrame = Instance.new("Frame")
+notificationFrame.Size = UDim2.new(0, 300, 0, 50)
+notificationFrame.Position = UDim2.new(1, -320, 1, -70)
+notificationFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 60)
+notificationFrame.BorderSizePixel = 0
+notificationFrame.Parent = screenGui
+
+local notificationCorner = Instance.new("UICorner")
+notificationCorner.CornerRadius = UDim.new(0, 8)
+notificationCorner.Parent = notificationFrame
+
+local notificationText = Instance.new("TextLabel")
+notificationText.Size = UDim2.new(1, -20, 1, 0)
+notificationText.BackgroundTransparency = 1
+notificationText.Text = "Press P key to open menu"
+notificationText.TextColor3 = Color3.fromRGB(255, 255, 255)
+notificationText.TextScaled = true
+notificationText.Font = Enum.Font.Arcade
+notificationText.Parent = notificationFrame
+
+local function showNotification()
+    notificationFrame.Position = UDim2.new(1, -320, 1, -70)
+    notificationFrame.Visible = true
+    TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(1, -320, 1, -120)}):Play()
+    wait(3)
+    TweenService:Create(notificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, -320, 1, -70)}):Play()
+    wait(0.5)
+    notificationFrame.Visible = false
+end
+
+coroutine.wrap(showNotification)()
+
+local function getCharacter()
+    return player.Character or player.CharacterAdded:Wait()
+end
+
+local selected = false
+local speed = 60
+local lastUpdate = 0
+
+function getNextMovement(deltaTime)
+    local nextMove = Vector3.new()
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) or UserInputService:IsKeyDown(Enum.KeyCode.Left) then
+        nextMove = Vector3.new(-1, 0, 0)
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.D) or UserInputService:IsKeyDown(Enum.KeyCode.Right) then
+        nextMove = Vector3.new(1, 0, 0)
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) or UserInputService:IsKeyDown(Enum.KeyCode.Up) then
+        nextMove = nextMove + Vector3.new(0, 0, -1)
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.S) or UserInputService:IsKeyDown(Enum.KeyCode.Down) then
+        nextMove = nextMove + Vector3.new(0, 0, 1)
+    end
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) or UserInputService:IsKeyDown(Enum.KeyCode.E) then
+        nextMove = nextMove + Vector3.new(0, 1, 0)
+    elseif UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.Q) then
+        nextMove = nextMove + Vector3.new(0, -1, 0)
+    end
+    return CFrame.new(nextMove * (speed * deltaTime))
+end
+
+function onSelected()
+    local char = getCharacter()
+    if char then
+        local humanoid = char:WaitForChild("Humanoid")
+        local root = char:WaitForChild("HumanoidRootPart")
+        selected = true
+        TweenService:Create(flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(85, 170, 85)}):Play()
+        root.Anchored = true
+        lastUpdate = tick()
+        humanoid.PlatformStand = true
+        while selected do
+            wait()
+            local delta = tick() - lastUpdate
+            local look = (c.Focus.p - c.CoordinateFrame.p).unit
+            local move = getNextMovement(delta)
+            local pos = root.Position
+            root.CFrame = CFrame.new(pos, pos + look) * move
+            lastUpdate = tick()
+        end
+        root.Anchored = false
+        root.Velocity = Vector3.new()
+        humanoid.PlatformStand = false
+    end
+end
+
+function onDeselected()
+    selected = false
+    TweenService:Create(flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+end
+
+flyButton.MouseButton1Click:Connect(function()
+    if selected == false then
+        onSelected()
+    elseif selected == true then
+        onDeselected()
     end
 end)
 
--- Teleport Home
+local speedEnabled = false
+speedButton.MouseButton1Click:Connect(function()
+    local character = getCharacter()
+    if character and character:FindFirstChild("Humanoid") then
+        speedEnabled = not speedEnabled
+        character.Humanoid.WalkSpeed = speedEnabled and 50 or 32
+        local newColor = speedEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+        TweenService:Create(speedButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    end
+end)
+
 local function teleportHome()
+    local character = getCharacter()
     local targetPart = nil
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and string.find(obj.Name, "Exit") then
@@ -121,46 +280,44 @@ local function teleportHome()
             break
         end
     end
-    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
+    if targetPart and character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = targetPart.CFrame
     else
-        warn("Could not find any part with 'Exit' in its name.")
+        warn("Could not find 'Exit' part or character not loaded.")
     end
 end
 teleportButton.MouseButton1Click:Connect(teleportHome)
 
--- Coin Autofarm Teleport
 local coinTeleportEnabled = false
 local function teleportToRandomCoin()
+    local character = getCharacter()
     local coins = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and (string.find(obj.Name, "Coin") or string.find(obj.Name, "Coins")) then
             table.insert(coins, obj)
         end
     end
-    if #coins > 0 then
+    if #coins > 0 and character and character:FindFirstChild("HumanoidRootPart") then
         local randomCoin = coins[math.random(1, #coins)]
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = randomCoin.CFrame
-        else
-            warn("Player character is not ready.")
-        end
+        character.HumanoidRootPart.CFrame = randomCoin.CFrame
     else
-        warn("No coins found in the game.")
+        warn("No coins found or character not loaded.")
     end
 end
 coinTeleportButton.MouseButton1Click:Connect(function()
     coinTeleportEnabled = not coinTeleportEnabled
+    local newColor = coinTeleportEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+    TweenService:Create(coinTeleportButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     if coinTeleportEnabled then
         while coinTeleportEnabled do
             teleportToRandomCoin()
-            wait(0.01)
+            wait(0.1)
         end
     end
 end)
 
--- Shop Teleport
 local function teleportToShopTheme()
+    local character = getCharacter()
     local targetPart = nil
     local shopThemeFolder = workspace:FindFirstChild("InteractiveMusicRegions")
     if shopThemeFolder then
@@ -171,81 +328,139 @@ local function teleportToShopTheme()
             end
         end
     end
-    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
+    if targetPart and character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.CFrame = targetPart.CFrame
     else
-        warn("Could not find 'Shop theme' in the 'InteractiveMusicRegions' folder.")
+        warn("Could not find 'Shop theme' or character not loaded.")
     end
 end
 shopThemeButton.MouseButton1Click:Connect(teleportToShopTheme)
 
--- Morph Teleport
-local function teleportToMorph()
-    local targetPart = nil
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name == "Prompt" then
-            targetPart = obj
-            break
-        end
-    end
-    if targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = targetPart.CFrame
-    else
-        warn("Could not find 'Prompt' in the game.")
-    end
-end
-morphButton.MouseButton1Click:Connect(teleportToMorph)
-
--- Noclip Toggle
-local noclipEnabled = false
-noclipButton.MouseButton1Click:Connect(function()
-    noclipEnabled = not noclipEnabled
-    if noclipEnabled then
-        local character = player.Character
-        if character then
-            for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-            character.Humanoid.PlatformStand = true
-            character.HumanoidRootPart.Anchored = true
-        end
-    else
-        local character = player.Character
-        if character then
-            for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-            character.Humanoid.PlatformStand = false
-            character.HumanoidRootPart.Anchored = false
-        end
-    end
-end)
-
--- Reset Character
 resetButton.MouseButton1Click:Connect(function()
-    -- Ensure the player has a character before attempting to reset
-    local character = player.Character
+    local character = getCharacter()
     if character then
-        -- Destroy the existing character to trigger a respawn
         character:BreakJoints()
     end
 end)
 
--- Toggle Menu Visibility with P key
-local menuVisible = true
-local function toggleMenuVisibility()
-    menuVisible = not menuVisible
-    frame.Visible = menuVisible
-end
+local fullBrightEnabled = false
+fullBrightButton.MouseButton1Click:Connect(function()
+    fullBrightEnabled = not fullBrightEnabled
+    local newColor = fullBrightEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+    TweenService:Create(fullBrightButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    if fullBrightEnabled then
+        Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+        Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    else
+        Lighting.Ambient = Color3.fromRGB(50, 50, 50)
+        Lighting.OutdoorAmbient = Color3.fromRGB(50, 50, 50)
+    end
+end)
 
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed then
-        if input.KeyCode == Enum.KeyCode.P then
-            toggleMenuVisibility()
+local fastInteractEnabled = false
+local originalPromptDurations = {}
+
+fastInteractButton.MouseButton1Click:Connect(function()
+    fastInteractEnabled = not fastInteractEnabled
+    local newColor = fastInteractEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+    TweenService:Create(fastInteractButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    
+    if fastInteractEnabled then
+        for _, prompt in pairs(game.Workspace:GetDescendants()) do
+            if prompt:IsA("ProximityPrompt") then
+                if not originalPromptDurations[prompt] then
+                    originalPromptDurations[prompt] = prompt.HoldDuration
+                end
+                prompt.HoldDuration = 0
+            end
+        end
+    else
+        for prompt, duration in pairs(originalPromptDurations) do
+            if prompt and prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = duration
+            end
         end
     end
 end)
+
+-- ESP Functionality
+local espEnabled = false
+local highlights = {}
+
+local function updateESP()
+    if espEnabled then
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= player and p.Character then
+                local char = p.Character
+                if not highlights[char] then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "ESPHighlight"
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                    highlight.OutlineColor = Color3.fromRGB(255, 255, 0)
+                    highlight.FillTransparency = 0.7
+                    highlight.OutlineTransparency = 0
+                    highlight.Adornee = char
+                    highlight.Parent = char
+                    highlights[char] = highlight
+                end
+            end
+        end
+    else
+        for char, highlight in pairs(highlights) do
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+        highlights = {}
+    end
+end
+
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    local newColor = espEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+    TweenService:Create(espButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    updateESP()
+end)
+
+game.Players.PlayerAdded:Connect(function(p)
+    if espEnabled then
+        p.CharacterAdded:Connect(function(char)
+            if espEnabled and p ~= player then
+                updateESP()
+            end
+        end)
+    end
+end)
+
+game.Players.PlayerRemoving:Connect(function(p)
+    if highlights[p.Character] then
+        highlights[p.Character]:Destroy()
+        highlights[p.Character] = nil
+    end
+end)
+
+player.CharacterAdded:Connect(function()
+    if espEnabled then
+        wait(1)
+        updateESP()
+    end
+end)
+
+local menuVisible = true
+local function toggleMenuVisibility()
+    menuVisible = not menuVisible
+    if menuVisible then
+        frame.Visible = true
+        TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0, 20, 0, 20)}):Play()
+    else
+        TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0, -250, 0, 20)}):Play()
+    end
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.P then
+        toggleMenuVisibility()
+    end
+end)
+
+toggleMenuVisibility()
