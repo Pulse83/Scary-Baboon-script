@@ -21,7 +21,7 @@ clickSound.Volume = 0.7
 clickSound.Parent = screenGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 650)
+frame.Size = UDim2.new(0, 250, 0, 500)
 frame.Position = UDim2.new(0, -250, 0, 20)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.BorderSizePixel = 0
@@ -93,7 +93,7 @@ titleLabel.Parent = frame
 
 local creatorLabel = Instance.new("TextLabel")
 creatorLabel.Size = UDim2.new(1, 0, 0, 20)
-creatorLabel.Position = UDim2.new(0, 0, 1, -40)
+creatorLabel.Position = UDim2.new(0, 0, 0, 460)
 creatorLabel.BackgroundTransparency = 1
 creatorLabel.Text = "By xiaon32"
 creatorLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -103,13 +103,16 @@ creatorLabel.Parent = frame
 
 local versionLabel = Instance.new("TextLabel")
 versionLabel.Size = UDim2.new(1, -20, 0, 20)
-versionLabel.Position = UDim2.new(0, 10, 0, 585) -- Moved up from 610 to 585
+versionLabel.Position = UDim2.new(0, 10, 0, 420)
 versionLabel.BackgroundTransparency = 1
-versionLabel.Text = "v2.0"
+versionLabel.Text = "v2.2" -- Changed from "v2.1" to "v2.2"
 versionLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 versionLabel.TextScaled = true
 versionLabel.Font = Enum.Font.Code
 versionLabel.Parent = frame
+
+local currentPage = 1
+local pages = {}
 
 local function createButton(name, position, text)
     local button = Instance.new("TextButton")
@@ -152,15 +155,123 @@ local function createButton(name, position, text)
     return button
 end
 
-local speedButton = createButton("SpeedButton", UDim2.new(0, 25, 0, 60), "Toggle Speed")
-local teleportButton = createButton("TeleportButton", UDim2.new(0, 25, 0, 120), "Teleport Home")
-local coinTeleportButton = createButton("CoinButton", UDim2.new(0, 25, 0, 180), "Toggle Coin Autofarm")
-local shopThemeButton = createButton("ShopButton", UDim2.new(0, 25, 0, 240), "Shop Teleport")
-local flyButton = createButton("FlyButton", UDim2.new(0, 25, 0, 300), "Fly")
-local resetButton = createButton("ResetButton", UDim2.new(0, 25, 0, 360), "Reset Character")
-local fullBrightButton = createButton("FullBrightButton", UDim2.new(0, 25, 0, 420), "FullBright")
-local fastInteractButton = createButton("FastInteractButton", UDim2.new(0, 25, 0, 480), "Fast Interact")
-local espButton = createButton("ESPButton", UDim2.new(0, 25, 0, 540), "Toggle ESP")
+-- Page 1 Buttons (First 5 buttons)
+local page1Buttons = {
+    speedButton = createButton("SpeedButton", UDim2.new(0, 25, 0, 60), "Toggle Speed"),
+    teleportButton = createButton("TeleportButton", UDim2.new(0, 25, 0, 120), "Teleport Home"),
+    coinTeleportButton = createButton("CoinButton", UDim2.new(0, 25, 0, 180), "Toggle Coin Autofarm"),
+    shopThemeButton = createButton("ShopButton", UDim2.new(0, 25, 0, 240), "Shop Teleport"),
+    flyButton = createButton("FlyButton", UDim2.new(0, 25, 0, 300), "Fly")
+}
+
+-- Page 2 Buttons (Last 5 buttons)
+local page2Buttons = {
+    resetButton = createButton("ResetButton", UDim2.new(0, 25, 0, 60), "Reset Character"),
+    fullBrightButton = createButton("FullBrightButton", UDim2.new(0, 25, 0, 120), "FullBright"),
+    fastInteractButton = createButton("FastInteractButton", UDim2.new(0, 25, 0, 180), "Fast Interact"),
+    espButton = createButton("ESPButton", UDim2.new(0, 25, 0, 240), "Toggle ESP"),
+    spinButton = createButton("SpinButton", UDim2.new(0, 25, 0, 300), "Toggle Spin")
+}
+
+pages[1] = page1Buttons
+pages[2] = page2Buttons
+
+-- Navigation Buttons
+local navFrame = Instance.new("Frame")
+navFrame.Size = UDim2.new(0, 100, 0, 30)
+navFrame.Position = UDim2.new(0.5, 0, 0, 360) -- Already centered at X=125
+navFrame.BackgroundTransparency = 1
+navFrame.Parent = frame
+
+local nextPageButton = Instance.new("TextButton")
+nextPageButton.Size = UDim2.new(1, 0, 1, 0)
+nextPageButton.BackgroundTransparency = 1
+nextPageButton.Text = ""
+nextPageButton.Parent = navFrame
+
+local nextPageArrow = Instance.new("ImageLabel")
+nextPageArrow.Size = UDim2.new(0, 20, 0, 20)
+nextPageArrow.Position = UDim2.new(1, -30, 0.5, -10)
+nextPageArrow.BackgroundTransparency = 1
+nextPageArrow.Image = "rbxassetid://18705278885"
+nextPageArrow.Rotation = 0 -- Points right for "Next Page"
+nextPageArrow.Parent = nextPageButton
+
+local nextPageLabel = Instance.new("TextLabel")
+nextPageLabel.Size = UDim2.new(0, 60, 1, 0)
+nextPageLabel.Position = UDim2.new(0, -30, 0, 0)
+nextPageLabel.BackgroundTransparency = 1
+nextPageLabel.Text = "Next Page"
+nextPageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+nextPageLabel.TextScaled = true
+nextPageLabel.Font = Enum.Font.Code
+nextPageLabel.Parent = nextPageButton
+
+local prevPageButton = Instance.new("TextButton")
+prevPageButton.Size = UDim2.new(1, 0, 1, 0)
+prevPageButton.BackgroundTransparency = 1
+prevPageButton.Text = ""
+prevPageButton.Parent = navFrame
+
+local prevPageArrow = Instance.new("ImageLabel")
+prevPageArrow.Size = UDim2.new(0, 20, 0, 20)
+prevPageArrow.Position = UDim2.new(1, -30, 0.5, -10)
+prevPageArrow.BackgroundTransparency = 1
+prevPageArrow.Image = "rbxassetid://18705278885"
+prevPageArrow.Rotation = 180 -- Points left for "Previous Page"
+prevPageArrow.Parent = prevPageButton
+
+local prevPageLabel = Instance.new("TextLabel")
+prevPageLabel.Size = UDim2.new(0, 60, 1, 0)
+prevPageLabel.Position = UDim2.new(0, -30, 0, 0)
+prevPageLabel.BackgroundTransparency = 1
+prevPageLabel.Text = "Prev Page"
+prevPageLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+prevPageLabel.TextScaled = true
+prevPageLabel.Font = Enum.Font.Code
+prevPageLabel.Parent = prevPageButton
+
+local function showPage(pageNum)
+    -- Hide all buttons
+    for _, page in pairs(pages) do
+        for _, button in pairs(page) do
+            button.Visible = false
+        end
+    end
+    -- Show buttons for the current page
+    for _, button in pairs(pages[pageNum]) do
+        button.Visible = true
+    end
+    -- Show/hide navigation buttons
+    nextPageButton.Visible = (pageNum < #pages)
+    prevPageButton.Visible = (pageNum > 1)
+    currentPage = pageNum
+end
+
+nextPageButton.MouseButton1Click:Connect(function()
+    clickSound:Play()
+    if currentPage < #pages then
+        showPage(currentPage + 1)
+    end
+end)
+
+prevPageButton.MouseButton1Click:Connect(function()
+    clickSound:Play()
+    if currentPage > 1 then
+        showPage(currentPage - 1)
+    end
+end)
+
+-- Keyboard navigation for pagination
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.Right and currentPage < #pages then
+            showPage(currentPage + 1)
+        elseif input.KeyCode == Enum.KeyCode.Left and currentPage > 1 then
+            showPage(currentPage - 1)
+        end
+    end
+end)
 
 local notificationFrame = Instance.new("Frame")
 notificationFrame.Size = UDim2.new(0, 300, 0, 50)
@@ -228,7 +339,7 @@ function onSelected()
         local humanoid = char:WaitForChild("Humanoid")
         local root = char:WaitForChild("HumanoidRootPart")
         selected = true
-        TweenService:Create(flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(85, 170, 85)}):Play()
+        TweenService:Create(page1Buttons.flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(85, 170, 85)}):Play()
         root.Anchored = true
         lastUpdate = tick()
         humanoid.PlatformStand = true
@@ -249,10 +360,10 @@ end
 
 function onDeselected()
     selected = false
-    TweenService:Create(flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+    TweenService:Create(page1Buttons.flyButton, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
 end
 
-flyButton.MouseButton1Click:Connect(function()
+page1Buttons.flyButton.MouseButton1Click:Connect(function()
     if selected == false then
         onSelected()
     elseif selected == true then
@@ -261,13 +372,13 @@ flyButton.MouseButton1Click:Connect(function()
 end)
 
 local speedEnabled = false
-speedButton.MouseButton1Click:Connect(function()
+page1Buttons.speedButton.MouseButton1Click:Connect(function()
     local character = getCharacter()
     if character and character:FindFirstChild("Humanoid") then
         speedEnabled = not speedEnabled
         character.Humanoid.WalkSpeed = speedEnabled and 50 or 32
         local newColor = speedEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
-        TweenService:Create(speedButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+        TweenService:Create(page1Buttons.speedButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     end
 end)
 
@@ -286,7 +397,7 @@ local function teleportHome()
         warn("Could not find 'Exit' part or character not loaded.")
     end
 end
-teleportButton.MouseButton1Click:Connect(teleportHome)
+page1Buttons.teleportButton.MouseButton1Click:Connect(teleportHome)
 
 local coinTeleportEnabled = false
 local function teleportToRandomCoin()
@@ -304,10 +415,10 @@ local function teleportToRandomCoin()
         warn("No coins found or character not loaded.")
     end
 end
-coinTeleportButton.MouseButton1Click:Connect(function()
+page1Buttons.coinTeleportButton.MouseButton1Click:Connect(function()
     coinTeleportEnabled = not coinTeleportEnabled
     local newColor = coinTeleportEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
-    TweenService:Create(coinTeleportButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    TweenService:Create(page1Buttons.coinTeleportButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     if coinTeleportEnabled then
         while coinTeleportEnabled do
             teleportToRandomCoin()
@@ -334,9 +445,9 @@ local function teleportToShopTheme()
         warn("Could not find 'Shop theme' or character not loaded.")
     end
 end
-shopThemeButton.MouseButton1Click:Connect(teleportToShopTheme)
+page1Buttons.shopThemeButton.MouseButton1Click:Connect(teleportToShopTheme)
 
-resetButton.MouseButton1Click:Connect(function()
+page2Buttons.resetButton.MouseButton1Click:Connect(function()
     local character = getCharacter()
     if character then
         character:BreakJoints()
@@ -344,10 +455,10 @@ resetButton.MouseButton1Click:Connect(function()
 end)
 
 local fullBrightEnabled = false
-fullBrightButton.MouseButton1Click:Connect(function()
+page2Buttons.fullBrightButton.MouseButton1Click:Connect(function()
     fullBrightEnabled = not fullBrightEnabled
     local newColor = fullBrightEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
-    TweenService:Create(fullBrightButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    TweenService:Create(page2Buttons.fullBrightButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     if fullBrightEnabled then
         Lighting.Ambient = Color3.fromRGB(255, 255, 255)
         Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
@@ -360,10 +471,10 @@ end)
 local fastInteractEnabled = false
 local originalPromptDurations = {}
 
-fastInteractButton.MouseButton1Click:Connect(function()
+page2Buttons.fastInteractButton.MouseButton1Click:Connect(function()
     fastInteractEnabled = not fastInteractEnabled
     local newColor = fastInteractEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
-    TweenService:Create(fastInteractButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    TweenService:Create(page2Buttons.fastInteractButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     
     if fastInteractEnabled then
         for _, prompt in pairs(game.Workspace:GetDescendants()) do
@@ -415,11 +526,50 @@ local function updateESP()
     end
 end
 
-espButton.MouseButton1Click:Connect(function()
+page2Buttons.espButton.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     local newColor = espEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
-    TweenService:Create(espButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    TweenService:Create(page2Buttons.espButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
     updateESP()
+end)
+
+-- Spin Functionality
+local spinEnabled = false
+local spinConnection
+
+local function startSpin()
+    local character = getCharacter()
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        local root = character.HumanoidRootPart
+        spinConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            if spinEnabled then
+                root.Velocity = Vector3.new(0, 0, 0)
+                root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(1000), 0)
+            end
+        end)
+    end
+end
+
+local function stopSpin()
+    if spinConnection then
+        spinConnection:Disconnect()
+        spinConnection = nil
+    end
+    local character = getCharacter()
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        character.HumanoidRootPart.Velocity = Vector3.new(0, 0, 0)
+    end
+end
+
+page2Buttons.spinButton.MouseButton1Click:Connect(function()
+    spinEnabled = not spinEnabled
+    local newColor = spinEnabled and Color3.fromRGB(85, 170, 85) or Color3.fromRGB(50, 50, 50)
+    TweenService:Create(page2Buttons.spinButton, TweenInfo.new(0.3), {BackgroundColor3 = newColor}):Play()
+    if spinEnabled then
+        startSpin()
+    else
+        stopSpin()
+    end
 end)
 
 game.Players.PlayerAdded:Connect(function(p)
@@ -444,6 +594,10 @@ player.CharacterAdded:Connect(function()
         wait(1)
         updateESP()
     end
+    if spinEnabled then
+        wait(1)
+        startSpin()
+    end
 end)
 
 local menuVisible = true
@@ -458,9 +612,14 @@ local function toggleMenuVisibility()
 end
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.P then
-        toggleMenuVisibility()
+    if not gameProcessed then
+        if input.KeyCode == Enum.KeyCode.P then
+            toggleMenuVisibility()
+        end
     end
 end)
+
+-- Show the first page by default
+showPage(1)
 
 toggleMenuVisibility()
